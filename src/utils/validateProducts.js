@@ -1,6 +1,7 @@
 
 export const validateProduct=(name,description,price,category,image)=>{
-
+      console.log(name,description,price,category,image);
+      
     let isName= name && name.length>0 && name.length <15
     let isDescription =description && description.length>0 && description.length < 30
     let isPrice =price && price >0 

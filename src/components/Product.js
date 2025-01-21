@@ -1,9 +1,11 @@
 import React, { useEffect, useState } from 'react'
 import { ShimmerPostList } from "react-shimmer-effects";
 import ProductList from './ProductList'
-import { getApi, productSearchCategoriesApi, searchApi } from '../helper/api'
+import { getApi, postApi, productSearchCategoriesApi, searchApi } from '../helper/api'
 import { useDispatch, useSelector } from 'react-redux';
 import {  toggleCategories } from '../redux/slice/toggleSlice';
+import Request from '../utils/modal/Request';
+import { toast } from 'react-toastify';
 
 
 const Product = () => {
@@ -11,8 +13,10 @@ const Product = () => {
   const [products, setProducts] = useState([])
   const [filteredProducts, setFilteredProducts] = useState(null)
 
+
   const dispatch=useDispatch()
   const isToggle = useSelector(state=>state.toggle.categoriesToggle)
+    const [isRequestToggle,setIsRequestToggle] = useState(false)
 
   useEffect(() => {
     let timer = setTimeout(async () => {
@@ -68,6 +72,18 @@ const Product = () => {
     
 
   }
+  const handleRequestSubmit=async (request_amount,product_id)=>{
+
+    
+    let response = await postApi('/requests',{request_amount,product_id})
+    if(response.status == 200){
+      setIsRequestToggle(false)
+      productsFetch()
+      toast("Request send successfully")
+    }
+    
+
+  }
   
 
 
@@ -76,6 +92,8 @@ if (filteredProducts ==null){
 }
 
   return (
+    <>
+ 
     <div className='flex'>
       <div className=' w-full'>
         <div className='justify-center align-middle flex mt-10 '>
@@ -103,11 +121,12 @@ if (filteredProducts ==null){
      </div>
 
     {
-      filteredProducts.length>0 ?  <ProductList products={filteredProducts} /> : <p className='align-middle justify-center flex mt-40 font-bold text-4xl'>No Products</p>
+      filteredProducts.length>0 ?  <ProductList products={filteredProducts} onRequestSubmit={handleRequestSubmit} isRequestToggle={isRequestToggle} setIsRequestToggle={setIsRequestToggle}/> : <p className='align-middle justify-center flex mt-40 font-bold text-4xl'>No Products</p>
     }
        
       </div>
     </div>
+    </>
   )
 }
 

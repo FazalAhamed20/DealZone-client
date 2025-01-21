@@ -15,13 +15,13 @@ const Navbar = () => {
 
   const handleLogout=async()=>{
     await logoutApi("/logout")
-    await dispatch(removeUser())
-    await removeToken()
+    dispatch(removeUser())
+    removeToken()
     navigate('/')
 
   }
   return (
-    <div className='bg-blue-950 w-full h-20 flex justify-between items-center px-4 sm:px-8'>
+    <div className='bg-blue-950 w-full h-20 flex justify-between items-center px-4 sm:px-8  '>
       <div className='flex items-center '>
         <img className="w-16 h-16 m-2" src={image} alt="Business Logo" />
         <h1 className='text-white font-bold text-lg sm:text-xl'>Deal Zone</h1>

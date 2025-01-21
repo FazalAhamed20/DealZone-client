@@ -112,3 +112,23 @@ export const deleteApi = async (path,id) => {
   return response
 
 }
+
+export const editApi = async (path,id,data) => {
+  let token = await getToken()
+  const response = await fetch(`${API_URL}${path}/${id}`, {
+    method: "PUT",
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`
+    },
+    body: JSON.stringify({
+      product:{
+       ...data
+      }
+     })
+   
+
+  })
+  return response
+
+}

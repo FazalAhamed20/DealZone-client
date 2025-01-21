@@ -53,8 +53,8 @@ const Signup = () => {
     };
 
     return (
-        <div className="flex min-h-screen items-center justify-center">
-            <div className="flex w-full max-w-6xl gap-10 p-4">
+        <div className="flex  items-center justify-center overflow-hidden">
+            <div className="flex w-full max-w-6xl gap-10 p-4 mt-10 ">
                 <div className="flex-1 flex items-center justify-center">
                     <Player
                         autoplay

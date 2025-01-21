@@ -1,9 +1,16 @@
 import React, { useState } from 'react';
 import ConfirmationModel from '../utils/modal/ConfirmationModel';
+import EditProduct from '../utils/modal/EditProduct';
+import RequestProduct from '../utils/modal/RequestProduct';
 
-const MyProductList = ({ products }) => {
+const MyProductList = ({ products,onDelete,onEdit,error,setError,requests }) => {
   const [isModel, setIsModel] = useState(false);
+  const [request,setRequest] = useState(null)
   const [selectedProduct, setSelectedProduct] = useState(null);
+  const [isEditToggle , setIsEditToggle] = useState(false)
+  const [isRequestProductToggle , setIsRequestProductToggle] = useState(false)
+ 
+console.log("requests",requests);
 
   const handleDelete = (product) => {
     setSelectedProduct(product);
@@ -12,7 +19,40 @@ const MyProductList = ({ products }) => {
 
   const handleEdit = (product) => {
     console.log("Editing product:", product);
+    setSelectedProduct(product);
+    setIsEditToggle(true)
   };
+
+  const handleConfirmDelete = () => {
+    if (selectedProduct) {
+      onDelete(selectedProduct);  
+      setIsModel(false);
+      setSelectedProduct(null);
+    }
+  };
+  const handleConfirmEdit=async (updatedProduct)=>{  
+     let error =await onEdit(updatedProduct)
+     console.log("product",error);
+     if(!error){
+      setIsEditToggle(false)
+      setSelectedProduct(null);
+     }  
+  }
+
+  const handleClosToggle=()=>{
+    setIsEditToggle(false)
+    setError('')
+  }
+  const handleProductRequest=(id)=>{
+    setIsRequestProductToggle(true)
+    const request = requests.find(request => request.product_id ==id);
+     if (request){ 
+      setRequest(request)
+    }
+
+    
+
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -20,9 +60,11 @@ const MyProductList = ({ products }) => {
         {isModel && (
           <ConfirmationModel 
             onClose={() => setIsModel(false)}
-            product={selectedProduct}
+            onConfirm={handleConfirmDelete}
           />
         )}
+        {isEditToggle && <EditProduct onClose={handleClosToggle} onConfirm={handleConfirmEdit} product={selectedProduct} error={error}/>}
+        {isRequestProductToggle && <RequestProduct request={request} setIsRequestProductToggle={setIsRequestProductToggle}/>}
 
         <h2 className="text-2xl font-bold tracking-tight text-gray-900">My Products</h2>
 
@@ -42,20 +84,23 @@ const MyProductList = ({ products }) => {
                 <p className="text-sm text-gray-500 line-clamp-2">{product.description}</p>
                 <div className="flex items-center justify-between">
                   <p className="text-lg font-semibold text-gray-900">₹{product.price}</p>
-                  <div className="flex gap-2">
-                    <button
-                      onClick={() => handleEdit(product)}
-                      className="px-3 py-1.5 text-sm font-medium text-white bg-blue-500 rounded-md hover:bg-blue-600 transition-colors"
-                    >
-                      Edit
-                    </button>
-                    <button
-                      onClick={() => handleDelete(product)}
-                      className="px-3 py-1.5 text-sm font-medium text-white bg-red-500 rounded-md hover:bg-red-600 transition-colors"
-                    >
-                      Delete
-                    </button>
-                  </div>
+                  { requests.some(request=>request.product_id == product.id) ? <button onClick={()=>handleProductRequest(product.id)} className='bg-yellow-300 text-sm p-2 rounded-lg'>Requested</button>      :
+                     <div className="flex gap-2">
+                     <button
+                       onClick={() => handleEdit(product)}
+                       className="px-3 py-1.5 text-sm font-medium text-white bg-blue-500 rounded-md hover:bg-blue-600 transition-colors"
+                     >
+                       Edit
+                     </button>
+                     <button
+                       onClick={() => handleDelete(product)}
+                       className="px-3 py-1.5 text-sm font-medium text-white bg-red-500 rounded-md hover:bg-red-600 transition-colors"
+                     >
+                       Delete
+                     </button>
+                   </div>
+                  }
+               
                 </div>
               </div>
             </div>

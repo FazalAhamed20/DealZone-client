@@ -1,16 +1,12 @@
 import React from 'react'
-import { deleteApi } from '../../helper/api'
-import { toast } from 'react-toastify'
 
-const ConfirmationModel = ({onClose,product}) => {
+const ConfirmationModel = ({onClose,onConfirm}) => {
 
     const handleDelete=async()=>{
-        let response = await deleteApi('/products',product.id)
 
-        if(response.status==200){
-            onClose()
-            toast('Product deleted successfully')
-        }
+      await onConfirm()
+      onClose()
+      
 
     }
   return (
