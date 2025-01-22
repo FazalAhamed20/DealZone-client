@@ -39,21 +39,20 @@ const Signup = () => {
 
             await dispatch(addUser({ id: result.user._id, email: result.user.email, username: result.user.username }))
             const token = await response.headers.get('Authorization');
-            console.log(token);
-
+           
             await storeToken(token)
             navigate('/products')
             toast("Welcome to Deal Zone")
         } else {
             let result = await response.json()
-            toast(result.message)
+           setErrorMessage(result.user.message)
         }
         setIsLoading(false)
 
     };
 
     return (
-        <div className="flex  items-center justify-center overflow-hidden">
+        <div className="flex  items-center justify-center overflow-hidden ">
             <div className="flex w-full max-w-6xl gap-10 p-4 mt-10 ">
                 <div className="flex-1 flex items-center justify-center">
                     <Player

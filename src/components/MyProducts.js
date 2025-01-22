@@ -15,6 +15,7 @@ const MyProducts = () => {
   const [isToggle, setIsToggle] = useState(false)
   const [error, setError] = useState('')
   const [isLoading,setIsLoading]=useState(false)
+    const [isRequestProductToggle , setIsRequestProductToggle] = useState(false)
 
   useEffect(() => {
     let timer = setTimeout(async () => {
@@ -33,13 +34,7 @@ const MyProducts = () => {
   const productsFetch = async () => {
     const response = await getApi('/products/my_products',)
     let result = await response.json()
-    console.log(result);
-    
     setProducts(result.products)
-    result.requests.forEach(request=>{
-      console.log(request.product_id.name);
-      
-    })
     setRequests(result.requests)
     setFilteredProducts(result.products)
   }
@@ -67,7 +62,7 @@ const MyProducts = () => {
   }
 
   const handleEdit = async (product) => {
-    let error = await validateProduct(product.name, product.description, product.price, product.category, product.image)
+    let error = validateProduct(product.name, product.description, product.price, product.category, product.image)
     if (error) {
       console.log(error);
       setError(error)
@@ -82,25 +77,48 @@ const MyProducts = () => {
   }
 
   const handleAddProduct=async(product)=>{
-    console.log(product);
     setIsLoading(true)
     product.image = await uploadImageToCloudinary(product.image)
-    let error = await validateProduct(product.name, product.description, product.price, product.category, product.image)
+    let error = validateProduct(product.name, product.description, product.price, product.category, product.image)
+    console.log(error);
+    
     if (error) {
       setIsLoading(false)
       return setError(error)
     }
-    
     let response = await postApi('/products',product)
     console.log(response)
     if(response.status == 201){
-      console.log("hello");
     setIsToggle(!isToggle)
     setIsLoading(false)
-    toast("Product added successfully")
-      
-      
+    setError('')
+    toast("Product added successfully") 
     }
+
+  }
+  const handleRequestAccept=async(requestId)=>{
+    let response = await editApi('/requests',requestId,{action:"accepted"})
+    if(response.status == 200){
+      productsFetch()
+      setIsRequestProductToggle(false)
+      toast('Accepted Successfully')
+    }
+  }
+
+  console.log(requests);
+  
+  
+
+
+  const handleRequestReject=async(requestId)=>{
+    let response = await editApi('/requests',requestId,{action:"rejected"})
+    if(response.status == 200){
+      productsFetch()
+      setIsRequestProductToggle(false)
+      toast('Rejected Successfully')
+
+    }
+    
 
   }
 
@@ -111,7 +129,7 @@ const MyProducts = () => {
   return (
     <>
       {isToggle ? <AddProduct onAdd={handleAddProduct} isLoading={isLoading} setIsToggle={setIsToggle} error={error} setError={setError}/> :
-        <div className='flex bg-gray-50'>
+        <div className='flex bg-white'>
           <div className=' w-full'>
             <div className='justify-center align-middle flex mt-10 '>
               <input onChange={(e) => setSearch(e.target.value)}
@@ -120,7 +138,8 @@ const MyProducts = () => {
             </div>
             <button onClick={() => setIsToggle(true)} className='bg-blue-800 text-white rounded-lg p-2 ml-10 hover:bg-blue-700'>Add Products</button>
             {
-              filteredProducts.length > 0 ? <MyProductList products={filteredProducts} requests={requests} onDelete={handleDelete} onEdit={handleEdit} error={error} setError={setError} /> : <p className='align-middle justify-center flex mt-40 font-bold text-4xl'>No Products</p>
+              filteredProducts.length > 0 ? <MyProductList products={filteredProducts} requests={requests} onDelete={handleDelete} onEdit={handleEdit} error={error} setError={setError} onAccept={handleRequestAccept}
+              isRequestProductToggle={isRequestProductToggle} setIsRequestProductToggle={setIsRequestProductToggle} onReject={handleRequestReject} /> : <p className='align-middle justify-center flex mt-40 font-bold text-4xl'>No Products</p>
             }
           </div>
         </div>}

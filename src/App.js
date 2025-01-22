@@ -7,6 +7,7 @@ import ProductPage from './pages/ProductPage';
 import ProtectedRoute from './routes/ProtectedRoute';
 import PublicRoute from './routes/PublicRoute';
 import MyProductsPage from './pages/MyProductsPage';
+import RequestStatusPage from './pages/RequestStatusPage';
 
 
 
@@ -22,6 +23,9 @@ function App() {
   {
     path: "/myproducts",
     element: <ProtectedRoute><MyProductsPage /></ProtectedRoute>
+  },{
+    path: "/request_status",
+    element:<ProtectedRoute><RequestStatusPage/></ProtectedRoute>
   }
   ])
   return (

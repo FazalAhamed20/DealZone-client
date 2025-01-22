@@ -4,16 +4,12 @@ import ProductList from './ProductList'
 import { getApi, postApi, productSearchCategoriesApi, searchApi } from '../helper/api'
 import { useDispatch, useSelector } from 'react-redux';
 import {  toggleCategories } from '../redux/slice/toggleSlice';
-import Request from '../utils/modal/Request';
 import { toast } from 'react-toastify';
-
 
 const Product = () => {
   const [search, setSearch] = useState('')
   const [products, setProducts] = useState([])
   const [filteredProducts, setFilteredProducts] = useState(null)
-
-
   const dispatch=useDispatch()
   const isToggle = useSelector(state=>state.toggle.categoriesToggle)
     const [isRequestToggle,setIsRequestToggle] = useState(false)
@@ -23,13 +19,9 @@ const Product = () => {
       if (search) {
         let response = await searchApi(search);
         setFilteredProducts(response)
-
       } else {
         setFilteredProducts(products)
-
       }
-
-
     }, 200);
     return () => {
       clearTimeout(timer)
@@ -37,18 +29,13 @@ const Product = () => {
   }, [search, products])
 
   const productsFetch = async () => {
-
     const response = await getApi('/products',)
-
     let result = await response.json()
     console.log(result)
     setProducts(result.products)
     setFilteredProducts(result.products)
-
-
-
-
   }
+
   useEffect(() => {
     productsFetch()
   }, [])
@@ -57,45 +44,34 @@ const Product = () => {
     if (search) {
       let response = await searchApi(search);
       setFilteredProducts(response)
-
     } else {
       setFilteredProducts(products)
-
     }
-
   }
   const handleProductCategories=async(category)=>{
     let response = await productSearchCategoriesApi(category)
-    console.log(response);
-    
     setFilteredProducts(response.products)
-    
-
   }
-  const handleRequestSubmit=async (request_amount,product_id)=>{
 
-    
+  const handleRequestSubmit=async (request_amount,product_id)=>{
     let response = await postApi('/requests',{request_amount,product_id})
     if(response.status == 200){
       setIsRequestToggle(false)
       productsFetch()
       toast("Request send successfully")
     }
-    
-
   }
+
+  const uniqueCategories=[...new Set(products.map(product=>product.category))]
   
-
-
 if (filteredProducts ==null){
   return (<ShimmerPostList postStyle="STYLE_FOUR" col={3} row={2} gap={30} />)
 }
 
   return (
     <>
- 
     <div className='flex'>
-      <div className=' w-full'>
+      <div className=' w-full relative'>
         <div className='justify-center align-middle flex mt-10 '>
           <input onChange={(e) => setSearch(e.target.value)}
             className='border border-black w-96 rounded-l-lg p-1 ' type='text' placeholder='Search Product' value={search} />
@@ -105,29 +81,24 @@ if (filteredProducts ==null){
       <button onClick={()=>{dispatch(toggleCategories())}} className='p-2 m-2 bg-gray-200 border border-gray-300 rounded-lg'>Categories ⬇️</button>
       {
         isToggle && (
-          <div>
+          <div className='absolute bg-white shadow-lg border border-gray-300 p-4 rounded-md mt-2 z-10'>
             {
-              products.map (product=>(
+              uniqueCategories.map (category=>(
                 <div className='mx-3 bg-gray-50 w-10 p-2 border-b'>
-                   <p onClick={()=>handleProductCategories(product.category)} className='cursor-pointer'>{product.category}</p>
+                   <p onClick={()=>handleProductCategories(category)} className='cursor-pointer'>{category}</p>
                 </div>
-               
-
               ))
             }
           </div>
         )
       }
      </div>
-
     {
       filteredProducts.length>0 ?  <ProductList products={filteredProducts} onRequestSubmit={handleRequestSubmit} isRequestToggle={isRequestToggle} setIsRequestToggle={setIsRequestToggle}/> : <p className='align-middle justify-center flex mt-40 font-bold text-4xl'>No Products</p>
     }
-       
       </div>
     </div>
     </>
   )
 }
-
 export default Product

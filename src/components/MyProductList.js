@@ -3,22 +3,20 @@ import ConfirmationModel from '../utils/modal/ConfirmationModel';
 import EditProduct from '../utils/modal/EditProduct';
 import RequestProduct from '../utils/modal/RequestProduct';
 
-const MyProductList = ({ products,onDelete,onEdit,error,setError,requests }) => {
+const MyProductList = ({ products,onDelete,onEdit,error,setError,requests,onAccept,isRequestProductToggle,setIsRequestProductToggle,onReject }) => {
   const [isModel, setIsModel] = useState(false);
   const [request,setRequest] = useState(null)
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [isEditToggle , setIsEditToggle] = useState(false)
-  const [isRequestProductToggle , setIsRequestProductToggle] = useState(false)
  
-console.log("requests",requests);
 
+    
   const handleDelete = (product) => {
     setSelectedProduct(product);
     setIsModel(true);
   };
 
   const handleEdit = (product) => {
-    console.log("Editing product:", product);
     setSelectedProduct(product);
     setIsEditToggle(true)
   };
@@ -49,13 +47,17 @@ console.log("requests",requests);
      if (request){ 
       setRequest(request)
     }
-
-    
-
   }
+  const handleProductRequestAccept=(requestId)=>{
+    onAccept(requestId)
+  }
+  const handleProductRequestReject=(requestId)=>{
+    onReject(requestId)
+  }
+  
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-white">
       <div className="mx-auto max-w-2xl px-4 py-8 sm:px-6 sm:py-12 lg:max-w-7xl lg:px-8">
         {isModel && (
           <ConfirmationModel 
@@ -64,7 +66,7 @@ console.log("requests",requests);
           />
         )}
         {isEditToggle && <EditProduct onClose={handleClosToggle} onConfirm={handleConfirmEdit} product={selectedProduct} error={error}/>}
-        {isRequestProductToggle && <RequestProduct request={request} setIsRequestProductToggle={setIsRequestProductToggle}/>}
+        {isRequestProductToggle && <RequestProduct request={request} setIsRequestProductToggle={setIsRequestProductToggle} onAccept={handleProductRequestAccept} onReject={handleProductRequestReject}/>}
 
         <h2 className="text-2xl font-bold tracking-tight text-gray-900">My Products</h2>
 
@@ -84,7 +86,8 @@ console.log("requests",requests);
                 <p className="text-sm text-gray-500 line-clamp-2">{product.description}</p>
                 <div className="flex items-center justify-between">
                   <p className="text-lg font-semibold text-gray-900">₹{product.price}</p>
-                  { requests.some(request=>request.product_id == product.id) ? <button onClick={()=>handleProductRequest(product.id)} className='bg-yellow-300 text-sm p-2 rounded-lg'>Requested</button>      :
+                  { requests && requests.some(request=>request.product_id == product.id && request.status == 'pending' ) ? <button onClick={()=>handleProductRequest(product.id)} className='bg-yellow-300 text-sm p-2 rounded-lg'>Requested</button>      :
+                      requests.some(request=>request.product_id == product.id && request.status == 'accepted' ) ? <h1  className='bg-green-300 text-sm p-2 rounded-lg '>Sold</h1>   :
                      <div className="flex gap-2">
                      <button
                        onClick={() => handleEdit(product)}

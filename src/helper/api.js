@@ -2,7 +2,6 @@ import { API_URL } from "../utils/constant"
 import { getToken } from "./token"
 
 
-
 export const getApi = async (path) => {
 
   let token = await getToken()
