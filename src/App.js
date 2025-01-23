@@ -8,6 +8,7 @@ import ProtectedRoute from './routes/ProtectedRoute';
 import PublicRoute from './routes/PublicRoute';
 import MyProductsPage from './pages/MyProductsPage';
 import RequestStatusPage from './pages/RequestStatusPage';
+import LoginPage from './pages/LoginPage';
 
 
 
@@ -15,6 +16,10 @@ function App() {
   const appRoutes = createBrowserRouter([{
     path: "/",
     element: <PublicRoute><AuthPage /></PublicRoute>
+  },
+  {
+    path: "/login",
+    element: <PublicRoute><LoginPage /></PublicRoute>
   },
   {
     path: "/products",

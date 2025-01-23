@@ -16,7 +16,7 @@ export const getApi = async (path) => {
   return response
 }
 
-export const postApi = async (path, data) => {
+export const postApi = async (path, data,body) => {
   let token = await getToken()
   const response = await fetch(`${API_URL}${path}`, {
     method: "POST",
@@ -25,7 +25,7 @@ export const postApi = async (path, data) => {
       'Authorization': `Bearer ${token}`
     },
     body: JSON.stringify({
-     product:{
+     [body]:{
       ...data
      }
     })

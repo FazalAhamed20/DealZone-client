@@ -1,53 +1,44 @@
-import React, { useRef, useState } from 'react';
+import React, { useState } from 'react';
 import { Player } from "@lottiefiles/react-lottie-player";
-import { useDispatch, useSelector } from 'react-redux';
-import { toggleAuth } from '../redux/slice/toggleSlice';
-import validateFields from '../utils/validation';
-import auth from '../helper/auth';
+import { Formik, Form, Field, ErrorMessage } from "formik";
 import { addUser } from '../redux/slice/userSlice';
-import { useNavigate } from "react-router";
+import { Link, useNavigate } from "react-router";
 import { toast } from 'react-toastify';
 import { ClipLoader } from 'react-spinners';
 import { storeToken } from '../helper/token';
+import { signUpValidation } from '../utils/validation'
+import { postApi } from '../helper/api';
+import { useDispatch } from 'react-redux';
 
 
 const Signup = () => {
-    const [errorMessage, setErrorMessage] = useState('')
     const [isLoading, setIsLoading] = useState(false)
-    const dispatch = useDispatch()
-    let isLogin = useSelector(state => state.toggle.authToggle)
-    let username = useRef(null)
-    let email = useRef(null)
-    let password = useRef(null)
     let navigate = useNavigate()
-
-
-    const handleSubmit = async () => {
-
-        let error = validateFields(email.current.value, password.current.value, isLogin ? null : username.current.value)
-        if (error) {
-            return setErrorMessage(error)
-        }
+    let dispatch = useDispatch()
+    const handleSubmit = async (values) => {
         setIsLoading(true)
-        let response = await auth(email.current.value, password.current.value, isLogin ? null : username.current.value, isLogin)
+        try {
+            console.log(values);
+            let response = await postApi('/users', values, "user")
+            console.log(response);
+            if (response.status == 201) {
+                let result = await response.json()
+       dispatch(addUser({ id: result.user._id, email: result.user.email, username: result.user.username }))
+                const token = response.headers.get('Authorization');
+                storeToken(token)
+                navigate('/products')
+                toast.success("Welcome to Deal Zone")
+            } else {
+                let result = await response.json()
+                toast.error(result.user.message)
+            }
+        } catch (error) {
+            toast.error(error.message)
 
-
-
-        if (response.status == 201 || response.status == 200) {
-            let result = await response.json()
-
-
-            await dispatch(addUser({ id: result.user._id, email: result.user.email, username: result.user.username }))
-            const token = await response.headers.get('Authorization');
-           
-            await storeToken(token)
-            navigate('/products')
-            toast("Welcome to Deal Zone")
-        } else {
-            let result = await response.json()
-           setErrorMessage(result.user.message)
+        } finally {
+            setIsLoading(false)
         }
-        setIsLoading(false)
+
 
     };
 
@@ -58,7 +49,7 @@ const Signup = () => {
                     <Player
                         autoplay
                         loop
-                        src="https://lottie.host/fc5f95e1-ea84-44e4-a977-121d252aeea6/thfik9chYV.json"
+                        src="https://lottie.host/08418f2d-3f4c-4d32-851b-170234d7e500/HHwKUDUX3g.json"
                         className="w-full max-w-lg"
 
                     />
@@ -68,83 +59,95 @@ const Signup = () => {
                 <div className="flex-1">
                     <div className="w-full max-w-md rounded-lg border border-gray-300 p-8 shadow-sm">
                         <h1 className="mb-6 text-center text-3xl font-bold text-blue-900">
-                            {isLogin ? "Log In" : "Sign Up"}
 
                         </h1>
-                        {errorMessage && <p className='text-red-700 text-center'>{errorMessage}</p>}
+                        <Formik
+                            initialValues={{ username: "", email: "", password: "" }}
+                            validationSchema={signUpValidation}
+                            onSubmit={handleSubmit}
+                        >
+                            {({ errors, touched }) => (
 
-                        <form onSubmit={(e) => e.preventDefault()} className="space-y-6">
-                            {
-                                !isLogin && (
+
+
+                                <Form className="space-y-6">
+
                                     <div className="space-y-2">
 
                                         <label
-                                            htmlFor="name"
+                                            htmlFor="username"
                                             className="block font-bold text-blue-800 text-xl"
                                         >
-                                            Name
+                                            Username
                                         </label>
-                                        <input
-                                            ref={username}
+                                        <Field
+
 
                                             type="text"
-                                            placeholder="Enter your name"
-                                            className="w-full rounded-md border border-gray-300 p-3 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                            name="username"
+                                            placeholder="Enter your username"
+                                            className={`w-full rounded-md border border-gray-300 p-3 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 ${errors.username && touched.username && "border-red-500"}`}
                                         />
+                                        <ErrorMessage name="username" component="div" className="mt-1 text-sm text-red-600" />
                                     </div>
 
-                                )
-                            }
 
 
-                            <div className="space-y-2">
-                                <label
-                                    htmlFor="email"
-                                    className="block font-bold text-blue-800 text-xl"
-                                >
-                                    Email
-                                </label>
-                                <input
-                                    ref={email}
-                                    type="email"
-                                    placeholder="Enter your email"
-                                    className="w-full rounded-md border border-gray-300 p-3 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                />
-                            </div>
+                                    <div className="space-y-2">
+                                        <label
+                                            htmlFor="email"
+                                            className="block font-bold text-blue-800 text-xl"
+                                        >
+                                            Email
+                                        </label>
+                                        <Field
+                                            name="email"
+                                            type="email"
+                                            placeholder="Enter your email"
+                                            className={`w-full rounded-md border border-gray-300 p-3 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 ${errors.email && touched.email && "border-red-500"
+                                                }`}
 
-                            <div className="space-y-2">
-                                <label
-                                    htmlFor="password"
-                                    className="block font-bold text-blue-800 text-xl"
-                                >
-                                    Password
-                                </label>
-                                <input
-                                    ref={password}
-                                    type="password"
-                                    placeholder="Enter your password"
-                                    className="w-full rounded-md border border-gray-300 p-3 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                />
-                            </div>
+                                        />
+                                        <ErrorMessage name="email" component="div" className="mt-1 text-sm text-red-600" />
+                                    </div>
 
-                            <button
-                                onClick={handleSubmit}
-                                className="w-full rounded-lg bg-blue-800 px-6 py-3 text-white hover:bg-blue-700 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-                            >
-                                {
-                                    isLoading ? <ClipLoader
-                                        color='#ffffff'
-                                        loading={isLoading}
-                                        size={30}
+                                    <div className="space-y-2">
+                                        <label
+                                            htmlFor="password"
+                                            className="block font-bold text-blue-800 text-xl"
+                                        >
+                                            Password
+                                        </label>
+                                        <Field
+                                            name="password"
+                                            type="password"
+                                            placeholder="Enter your password"
+                                            className={`w-full rounded-md border border-gray-300 p-3 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 ${errors.password && touched.password && "border-red-500"
+                                                }`}
+                                        />
+                                        <ErrorMessage name="password" component="div" className="mt-1 text-sm text-red-600" />
+                                    </div>
 
-                                    /> :
-                                        isLogin ? "Log In" : "Sign Up"
-                                }
+                                    <button
+                                        type='submit'
+                                        className="w-full rounded-lg bg-blue-800 px-6 py-3 text-white hover:bg-blue-700 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                                    >
+                                        {
+                                            isLoading ? <ClipLoader
+                                                color='#ffffff'
+                                                loading={isLoading}
+                                                size={30}
 
-                            </button>
-                            {isLogin ? <p className='text-blue-800'>Don't have an account? <span onClick={() => dispatch(toggleAuth())} className='cursor-pointer'>SignUp</span></p> : <p className='text-blue-800'>If you already have an account? <span onClick={() => dispatch(toggleAuth())} className='cursor-pointer'>LogIn</span></p>}
+                                            /> :
+                                                "Sign Up"
+                                        }
 
-                        </form>
+                                    </button>
+                                    <p className='text-blue-800'>Already have an account? <Link to="/login"><span className='cursor-pointer'>Log In</span></Link></p>
+
+                                </Form>
+                            )}
+                        </Formik>
                     </div>
                 </div>
             </div>

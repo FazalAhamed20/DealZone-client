@@ -30,6 +30,7 @@ const Navbar = () => {
       {
      
           user && <div className='flex gap-10'>
+             <Link to="/products"><p className='text-white mt-2 cursor-pointer'>Product</p></Link>
             <Link to="/myproducts"><p className='text-white mt-2 cursor-pointer'>My Product</p></Link>
             <Link to="/request_status"><p className='text-white mt-2 cursor-pointer'>Request Status</p></Link>
             

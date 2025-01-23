@@ -6,6 +6,8 @@
     "@lottiefiles/react-lottie-player": "^3.6.0",
     "@reduxjs/toolkit": "^2.5.0",
     "cra-template": "1.2.0",
+    "formik": "^2.4.6",
+    "lucide-react": "^0.473.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-redux": "^9.2.0",
@@ -14,7 +16,8 @@
     "react-shimmer-effects": "^1.0.3",
     "react-spinners": "^0.15.0",
     "react-toastify": "^11.0.3",
-    "redux-persist": "^6.0.0"
+    "redux-persist": "^6.0.0",
+    "yup": "^1.6.1"
   },
   "scripts": {
     "start": "react-scripts start",

@@ -1,33 +1,29 @@
+import { object, string ,number, mixed} from 'yup';
 
-const validateFields=(email,password,name)=>{
+export const  signUpValidation = object({
+    username:string().min(4, 'Name must be greater than 3 characters').required('Please enter your username'),
+    email:string().email("Email must be a valid email").required('Please enter your email').matches(/^[A-Z0-9]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i, 'Invalid email format'),
+    password:string().required('Please enter your password').matches(
+        /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/,
+        '8 characters, uppercase letter, lowercase letter, number, special character',
+      ),
+})
 
-    console.log("hello");
-    
+export const loginValidation=object({
+    email:string().email("Email must be a valid email").required('Please enter your email').matches(/^[A-Z0-9]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i, 'Invalid email format'),
+    password:string().required('Please enter your password').matches(
+        /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/,
+        '8 characters, uppercase letter, lowercase letter, number, special character',
+      ),
 
-    let isEmailValid = /^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/.test(email) 
-    let isPasswordValid = /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[a-zA-Z]).{8,}$/.test(password)
-    let isNameValid;
-    if(name==null){
-       
-        if(!isEmailValid || !isPasswordValid){
-            return "Email or Password is Invalid"
-        }else{
-            return null
-        }
-    }else{
-          isNameValid = name.length>0
-          if(!isNameValid){
-            return "Name is invalid"
-        }
-        if(!isEmailValid || !isPasswordValid){
-            return "Email or Password is Invalid"
-        }else{
-            return null
-        }
+})
 
-    }
-    
 
-}
+export const productValidation=object({
+  name:string().required("Please enter the product name").min(4,"Name must be greater than 3 characters"),
+  description:string().required("Please enter the description").min(10,"Description must be greater than 9 characters"),
+  category:string().required("Please enter the category").min(3,"Category must be greater than 3 characters"),
+  price:number().required("Please enter the price").min(1,"Price should be greater than 1"),
 
-export default validateFields
+})
+
