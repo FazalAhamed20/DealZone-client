@@ -1,6 +1,6 @@
 import React, { useRef } from 'react';
 
-const Request = ({setIsRequestToggle,onRequest}) => {
+const Request = ({setIsRequestToggle,onRequest,requestProduct}) => {
 
     let price=useRef()
 
@@ -16,6 +16,8 @@ const Request = ({setIsRequestToggle,onRequest}) => {
     <div className="fixed inset-0 z-50 overflow-hidden bg-gray-900/50 backdrop-blur-sm flex justify-center items-center">
       <form className="bg-white p-8 rounded-lg shadow-lg w-full max-w-lg">
         <div className="mb-6">
+          <p className='block text-gray-700 text-lg font-semibold mb-2'>Product: {requestProduct.name}</p>
+          <p className='block text-gray-700 text-lg font-semibold mb-2'>Price: {requestProduct.price}</p>
           <label className="block text-gray-700 text-sm font-semibold mb-2">
             Your Price
           </label>

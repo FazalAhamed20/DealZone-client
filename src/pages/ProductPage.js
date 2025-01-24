@@ -5,7 +5,7 @@ import Product from '../components/Product'
 const ProductPage = () => {
   return (
     <div>
-        <Navbar/>
+        {/* <Navbar/> */}
         <Product/>
     </div>
   )

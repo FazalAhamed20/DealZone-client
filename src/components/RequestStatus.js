@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { getApi } from '../helper/api';
 import { ShimmerPostList } from 'react-shimmer-effects';
+import { ProductCard } from './ProductCard';
 
 const RequestStatus = () => {
     const [requestDetails,setRequestDetails] = useState(null)
@@ -37,25 +38,26 @@ const RequestStatus = () => {
   <div className="mt-6 grid grid-cols-1 gap-x-6 gap-y-10 sm:grid-cols-2 lg:grid-cols-4 xl:gap-x-8">
 
   { requestDetails.map((request) => (
-      <div key={request.id} className="group relative bg-white p-4 rounded-lg shadow-sm">
-        <div className="aspect-h-1 aspect-w-1 w-full overflow-hidden rounded-lg">
-          <img
-            src={request.product.image}
-            alt={request.product.name}
-            className="h-48 w-full object-cover object-center group-hover:opacity-75"
-          />
-        </div>
-        <div className="mt-4 space-y-2">
-          <h3 className="text-sm font-medium text-gray-900">Product:{request.product.name}</h3>
-          <p className="text-sm text-gray-500">Actual Price:₹{request.product.price}</p>
-          <p className="text-sm text-gray-500 line-clamp-2">Your Price:₹{request.request_amount}</p>
-          <div className="flex items-center justify-between">
-          <p className={`${request.status === 'pending' ? 'text-yellow-500' : request.status == 'accepted' ? 'text-green-500' : 'text-red-500'}`}>
-             Status: {request.status}
-              </p>
-          </div>
-        </div>
-      </div>
+    <ProductCard product={request.product} request={request} isRequest={true}/>
+      // <div key={request.id} className="group relative bg-white p-4 rounded-lg shadow-sm">
+      //   <div className="aspect-h-1 aspect-w-1 w-full overflow-hidden rounded-lg">
+      //     <img
+      //       src={request.product.image}
+      //       alt={request.product.name}
+      //       className="h-48 w-full object-cover object-center group-hover:opacity-75"
+      //     />
+      //   </div>
+      //   <div className="mt-4 space-y-2">
+      //     <h3 className="text-sm font-medium text-gray-900">Product:{request.product.name}</h3>
+      //     <p className="text-sm text-gray-500">Actual Price:₹{request.product.price}</p>
+          // <p className="text-sm text-gray-500 line-clamp-2">Your Price:₹{request.request_amount}</p>
+          // <div className="flex items-center justify-between">
+          // <p className={`${request.status === 'pending' ? 'text-yellow-500' : request.status == 'accepted' ? 'text-green-500' : 'text-red-500'}`}>
+          //    Status: {request.status}
+          //     </p>
+          // </div>
+      //   </div>
+      // </div>
     ))}
   </div>
 </div>

@@ -5,9 +5,8 @@ import MyProducts from '../components/MyProducts'
 const MyProductsPage = () => {
   return (
     <div>
-        <Navbar/>
+        {/* <Navbar/> */}
         <MyProducts/>
-
     </div>
   )
 }

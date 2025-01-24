@@ -16,6 +16,7 @@ export const getApi = async (path) => {
   return response
 }
 
+
 export const postApi = async (path, data,body) => {
   let token = await getToken()
   const response = await fetch(`${API_URL}${path}`, {
@@ -97,6 +98,24 @@ export const productSearchCategoriesApi = async (query) => {
 }
 
 
+
+
+export const productSearchFilterApi = async (query) => {
+  let token = await getToken()
+  const response = await fetch(`${API_URL}/search/filter_search?query=${query}`, {
+    method: "GET",
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`
+    }
+
+  })
+  let result = await response.json()
+  return result
+
+}
+
+
 export const deleteApi = async (path,id) => {
   let token = await getToken()
   const response = await fetch(`${API_URL}${path}/${id}`, {
@@ -129,5 +148,20 @@ export const editApi = async (path,id,data) => {
 
   })
   return response
+
+}
+
+export const fetchCategoriesApi = async () => {
+  let token = await getToken()
+  const response = await fetch(`${API_URL}/search/category_search`, {
+    method: "GET",
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`
+    }
+
+  })
+  let result = await response.json()
+  return result
 
 }

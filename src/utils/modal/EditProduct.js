@@ -2,36 +2,31 @@ import React, { useRef } from 'react';
 import { uploadImageToCloudinary } from '../../helper/cloudinary';
 import { Formik, Form, Field, ErrorMessage } from "formik";
 import { productValidation } from '../validation';
-const EditProduct = ({onClose,onConfirm,product,error}) => {
+import { ClipLoader } from 'react-spinners';
+import useCategories from '../../hooks/useCategories';
+
+const EditProduct = ({onClose,onConfirm,product,isLoading,setIsLoading}) => {
+         
 
 
-     let name=useRef()
-      let description=useRef()
-      let price=useRef()
-      let category=useRef()
-      let image=useRef()
+  let categories = useCategories()
+  console.log(categories);
+    
+      let imageRef=useRef()
 
-      const handleSubmit=async(e)=>{
-        e.preventDefault();
-     
-        
-        if(!image.current.files[0]){
-            image=product.image
-            
+      const handleSubmit=async(values)=>{
+        setIsLoading(true)
+       let image;
+        if(imageRef.current.files[0]){
+          image =  await uploadImageToCloudinary(imageRef.current.files[0] )  
         }else{
-            image =  await uploadImageToCloudinary(image.current.files[0] )
+          image=product.image
+           
 
         }
         
-        const updatedProduct = {
-            id:product.id,
-          name: name.current.value,
-          description: description.current.value,
-          price: price.current.value,
-          category: category.current.value,
-          image: image
-        };
-       onConfirm(updatedProduct);
+    
+       onConfirm({...values,image:image,id:product.id});
        
         
       }
@@ -46,20 +41,17 @@ const EditProduct = ({onClose,onConfirm,product,error}) => {
       validationSchema={productValidation}
       onSubmit={handleSubmit}
       >
-        {({errors,touched})=>(
+        {({errors,touched,setFieldValue})=>(
      <Form className='bg-white p-10 rounded shadow-md w-full max-w-lg'>
-        {/* {
-                 error && <h1 className='text-red-600'>{error}</h1>
-        } */}
+       
         <div className='mb-4'>
           <label className='block text-gray-700 text-sm font-bold mb-2' htmlFor='name'>
             Name
           </label>
-          <Form
-            className='shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline'
+          <Field
+            className={`shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline ${errors.name && touched.name && "border-red-500"}`}
             type='text'
             placeholder='Enter product name'
-            // defaultValue={product.name}
             name='name'
           />
            <ErrorMessage name="name" component="div" className="mt-1 text-sm text-red-600" />
@@ -68,8 +60,8 @@ const EditProduct = ({onClose,onConfirm,product,error}) => {
           <label className='block text-gray-700 text-sm font-bold mb-2' htmlFor='description'>
             Description
           </label>
-          <Form
-            className='shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline'
+          <Field
+            className={`shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline ${errors.description && touched.description && "border-red-500"}`}
             type='text'
             placeholder='Enter product description'
             name='description'
@@ -80,8 +72,8 @@ const EditProduct = ({onClose,onConfirm,product,error}) => {
           <label className='block text-gray-700 text-sm font-bold mb-2' htmlFor='price'>
             Price
           </label>
-          <Form
-            className='shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline'
+          <Field
+            className={`shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline ${errors.price && touched.price && "border-red-500"}`}
             type='number'
             placeholder='Enter product price'
             name='price'
@@ -92,13 +84,33 @@ const EditProduct = ({onClose,onConfirm,product,error}) => {
           <label className='block text-gray-700 text-sm font-bold mb-2' htmlFor='category'>
             Category
           </label>
-          <Form
-            className='shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline'
-            type='text'
-            placeholder='Enter product category'
-            name='category'
-          />
-           <ErrorMessage name="category" component="div" className="mt-1 text-sm text-red-600" />
+          <div className="flex gap-10">
+             <select 
+               onChange={(e) => {
+                 setFieldValue('category', e.target.value)
+               }}
+               className="border border-black rounded-lg py-2"
+             >
+            {
+            categories.map(category => {
+              return (
+                <option key={category.category} value={category.category}>
+                  {category.category}
+                </option>
+              );
+            })
+          }
+          
+             </select>
+          
+             <Field
+               type='text'
+               name='category'
+               placeholder='Enter product category'
+               className={`shadow appearance-none border rounded w-1/2 py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline ${errors.category && touched.category && "border-red-500"}`}
+
+             />
+           </div>
         </div>
         <div className='mb-4'>
           <label className='block text-gray-700 text-sm font-bold mb-2' htmlFor='image'>
@@ -108,7 +120,7 @@ const EditProduct = ({onClose,onConfirm,product,error}) => {
             type='file'
             accept='image/*'
             placeholder='Image'
-            ref={image}
+            ref={imageRef}
           />
         </div>
         <div className='flex items-center gap-5'>
@@ -117,19 +129,33 @@ const EditProduct = ({onClose,onConfirm,product,error}) => {
          
         
           >
-            Edit Product
+              {
+                                    isLoading ? <ClipLoader
+                                        color='#ffffff'
+                                        loading={isLoading}
+                                        size={40}
+
+                                    /> :
+                                   "Edit Product"
+                                        
+                                }
+           
          
            
           </button>
+          {!isLoading &&
+           <button
+           className='bg-red-800 hover:bg-red-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline'
+           onClick={onClose}
+     
+         
+         >
+          Cancel
+         </button>
+
+          }
       
-          <button
-          className='bg-red-800 hover:bg-red-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline'
-          onClick={onClose}
-    
-        
-        >
-         Cancel
-        </button>
+         
     
           
         </div>

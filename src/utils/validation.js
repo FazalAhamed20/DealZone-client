@@ -24,6 +24,5 @@ export const productValidation=object({
   description:string().required("Please enter the description").min(10,"Description must be greater than 9 characters"),
   category:string().required("Please enter the category").min(3,"Category must be greater than 3 characters"),
   price:number().required("Please enter the price").min(1,"Price should be greater than 1"),
-
 })
 

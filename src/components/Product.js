@@ -1,22 +1,43 @@
 import React, { useEffect, useState } from 'react';
 import { ShimmerPostList } from "react-shimmer-effects";
 import ProductList from './ProductList';
-import { getApi, postApi, productSearchCategoriesApi, searchApi } from '../helper/api';
-import { useDispatch, useSelector } from 'react-redux';
-import { toggleCategories } from '../redux/slice/toggleSlice';
+import { getApi, postApi, productSearchCategoriesApi, productSearchFilterApi, searchApi } from '../helper/api';
 import { toast } from 'react-toastify';
-import { ChevronDown } from 'lucide-react';
 import { useSearchParams } from 'react-router-dom';
+import InfiniteScroll from 'react-infinite-scroll-component';
+
+import Search from './Search';
+import Filter from './Filter';
+import useCategories from '../hooks/useCategories';
 
 const Product = () => {
   const [searchParams, setSearchParams] = useSearchParams();
+  const [categoryParams,setCategoryParams] = useSearchParams()
+  const [filterParams,setFilterParams] = useSearchParams()
   const [products, setProducts] = useState([]);
   const [filteredProducts, setFilteredProducts] = useState(null);
   const [selectedCategory, setSelectedCategory] = useState('All');
-  const dispatch = useDispatch();
-  const isToggle = useSelector(state => state.toggle.categoriesToggle);
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
+
   const [isRequestToggle, setIsRequestToggle] = useState(false);
   const search = searchParams.get('search') || '';
+  const category = categoryParams.get('category') || ""
+  const filter =filterParams.get('filter')|| ""
+
+  useEffect(() => {
+    const fetchInitialProducts = async () => {
+      const response = await getApi('/products?page=1');
+      const result = await response.json();
+      setProducts(result.products);
+      setFilteredProducts(result.products);
+      setHasMore(result.products.length > 0); 
+    };
+
+    fetchInitialProducts();
+ 
+  }, []);
+
   useEffect(() => {
     const timer = setTimeout(async () => {
       if (search) {
@@ -29,18 +50,78 @@ const Product = () => {
       }
     }, 200);
     return () => clearTimeout(timer);
-  }, [search, products, setSearchParams]);
+  }, [search, products]);
 
-  const productsFetch = async () => {
-    const response = await getApi('/products');
-    const result = await response.json();
-    setProducts(result.products);
-    setFilteredProducts(result.products);
-  };
 
   useEffect(() => {
-    productsFetch();
-  }, []);
+    const fetchData = async () => {
+      if (category) {
+        if (category === "All") {
+          setFilteredProducts(products);
+          setCategoryParams({});
+        } else {
+          const response = await productSearchCategoriesApi(category);
+          console.log(response);
+          
+          setFilteredProducts(response.products);
+          setCategoryParams({ category: category });
+        }
+      }
+    };
+
+    fetchData();
+  }, [category, products]);
+
+  useEffect(()=>{
+    const fetchFilter=async()=>{
+      if(filter){
+        if(filter == "Select Filter"){
+          setFilteredProducts(products)
+          setFilterParams({})
+        }else{
+          const response = await productSearchFilterApi(filter)
+          console.log(response);
+          
+          setFilteredProducts(response);
+          setCategoryParams({ filter: filter });
+        }
+      }
+    }
+    fetchFilter()
+  },[products,filter])
+
+  let categories = useCategories()
+
+  
+
+  
+
+  const productsFetch = async (page, append = true) => {
+
+    const response = await getApi(`/products?page=${page}`);
+    const result = await response.json();
+    if (result.status === 500) {
+      setHasMore(false);
+    } else {
+      const newProducts = result.products;
+      setHasMore(newProducts.length > 0); 
+      if (append) {
+        setProducts(prevProducts => [...prevProducts, ...newProducts]);
+        setFilteredProducts(prevProducts => [...prevProducts, ...newProducts]);
+      } else {
+        setProducts(newProducts);
+        setFilteredProducts(newProducts);
+      }
+    }
+  };
+
+
+
+  useEffect(() => {
+    if (page > 1) {
+      productsFetch(page);
+    }
+  }, [page]);
 
   const handleSubmit = async () => {
     if (search) {
@@ -51,20 +132,19 @@ const Product = () => {
     }
   };
 
+
+
   const handleProductCategories = async (category) => {
-    setSelectedCategory(category);
-    if (category == "All"){
-      setFilteredProducts(products)
-      dispatch(toggleCategories());
-
-    }else{
-      const response = await productSearchCategoriesApi(category);
-      setFilteredProducts(response.products);
-      dispatch(toggleCategories());
-
-    }
-  
+    let value=category
+    setSelectedCategory(value)
+    setCategoryParams(value ? {category:value}:{})
   };
+
+  const handleProductFilter=async(filter)=>{
+   let value=filter
+    setFilterParams(value ? {filter:value}:{})
+   
+  }
 
   const handleSearchChange = (e) => {
     const value = e.target.value;
@@ -75,91 +155,82 @@ const Product = () => {
     const response = await postApi('/requests', { request_amount, product_id }, "product");
     if (response.status === 200) {
       setIsRequestToggle(false);
-      productsFetch();
+      await productsFetch(1, false);  
+      setPage(2); 
       toast("Request sent successfully");
     }
   };
 
-  const uniqueCategories = ["All",...new Set(products.map(product => product.category))];
+  const uniqueCategories = ["All", ...(categories.map(product => product.category))];
 
-  if (filteredProducts === null) {
-    return <ShimmerPostList postStyle="STYLE_FOUR" col={3} row={2} gap={30} />;
+  if (filteredProducts == null) {
+    return (
+      <div style={{ width: '100%', height: '10vh' }}> 
+        <ShimmerPostList postStyle="STYLE_FOUR" col={4} row={2} gap={30} />
+      </div>
+    );
   }
 
   return (
     <div className="w-full px-4">
-  <div className="max-w-6xl mx-auto mt-10">
-    <div className="flex justify-between items-center">
-      <div className="relative flex items-center">
-        <h1 className="text-lg font-medium inline-block mr-2">Categories:</h1>
-        <button
-          onClick={() => dispatch(toggleCategories())}
-          className="inline-flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50"
-        >
-          {selectedCategory} <ChevronDown size={16} />
-        </button>
-
-        {isToggle && (
-          <div className="absolute right-0 bg-white shadow-lg border border-gray-300 rounded-md mt-2 z-10 min-w-[150px]">
-            {uniqueCategories.map(category => (
-              <div
-                key={category}
-                className="px-4 py-2 hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-b-0"
-                onClick={() => handleProductCategories(category)}
+      <div className="max-w-6xl mx-auto mt-10 ">
+        <div className="flex justify-between items-center mb-10 ">
+          <div className="relative flex items-center gap-4">
+            <div className="flex items-center">
+              <h1 className="text-lg font-medium inline-block mr-2">Categories:</h1>
+              <select
+                className="border border-black rounded-lg py-2"
+                onChange={(e) => handleProductCategories(e.target.value)}
               >
-                {category}
-              </div>
-            ))}
+                {uniqueCategories.map(category => (
+                  <option key={category} value={category}>
+                    {category}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="flex items-center">
+              <Filter handleProductFilter={handleProductFilter}/>
+            </div>
           </div>
+          <div className="relative flex items-center">
+            <Search handleSearchChange={handleSearchChange} handleSubmit={handleSubmit} />
+          </div>
+        </div>
+  
+        {filteredProducts.length > 0 ? (
+          // <div id='scrollableDiv' className="overflow-y-auto" style={{ height: '70vh' }}> 
+          <InfiniteScroll
+            dataLength={filteredProducts.length}
+            next={() => setPage((prevPage) => prevPage + 1)}
+            hasMore={hasMore}
+            loader={<ShimmerPostList postStyle="STYLE_FOUR" col={4} row={1} gap={30} size={100} />}
+            endMessage={
+              <p className="text-center text-gray-500 my-4">
+                No more products
+              </p>
+            }
+            scrollableTarget="scrollableDiv"
+          >
+            {filteredProducts.length > 0 ? (
+              <ProductList
+                products={filteredProducts}
+                onRequestSubmit={handleRequestSubmit}
+                isRequestToggle={isRequestToggle}
+                setIsRequestToggle={setIsRequestToggle}
+                selectedCategory={selectedCategory}
+              />
+            ) : (
+              <p className="text-center mt-40 font-bold text-4xl">No Products</p>
+            )}
+          </InfiniteScroll>
+        // </div>
+        ) : (
+          <p className="text-center mt-40 font-bold text-4xl">No Products</p>
         )}
       </div>
-      <div className="relative flex items-center">
-       
-
-      <form onSubmit={(e)=>e.preventDefault()} class="flex items-center max-w-sm mx-auto">   
-    <label for="simple-search" class="sr-only">Search</label>
-    <div class="relative w-full">
-        <div class="absolute inset-y-0 start-0 flex items-center ps-3 pointer-events-none">
-            <svg class="w-4 h-4 text-gray-500 dark:text-gray-400" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 18 20">
-                <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5v10M3 5a2 2 0 1 0 0-4 2 2 0 0 0 0 4Zm0 10a2 2 0 1 0 0 4 2 2 0 0 0 0-4Zm12 0a2 2 0 1 0 0 4 2 2 0 0 0 0-4Zm0 0V6a3 3 0 0 0-3-3H9m1.5-2-2 2 2 2"/>
-            </svg>
-        </div>
-        <input
-        onChange={handleSearchChange}
-      type="text"
-      id="simple-search"
-      class="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full ps-10 p-2.5 dark:bg-white dark:border-gray-600 dark:placeholder-gray-400 dark:text-black dark:focus:ring-blue-500 dark:focus:border-blue-500"
-      placeholder="Search Product..."
-      required
-    />
     </div>
-    <button onClick={handleSubmit} class="p-2.5 ms-2 text-sm font-medium text-white bg-blue-700 rounded-lg border border-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">
-        <svg class="w-4 h-4" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 20">
-            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m19 19-4-4m0-7A7 7 0 1 1 1 8a7 7 0 0 1 14 0Z"/>
-        </svg>
-        <span class="sr-only">Search</span>
-    </button>
-</form>
-
-
-      </div>
-    </div>
-
-    {filteredProducts.length > 0 ? (
-      <ProductList
-        products={filteredProducts}
-        onRequestSubmit={handleRequestSubmit}
-        isRequestToggle={isRequestToggle}
-        setIsRequestToggle={setIsRequestToggle}
-        selectedCategory={selectedCategory}
-      />
-    ) : (
-      <p className="text-center mt-40 font-bold text-4xl">No Products</p>
-    )}
-  </div>
-</div>
-
   );
-};
+}
 
 export default Product;

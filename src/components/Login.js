@@ -130,7 +130,7 @@ const Login = () => {
                                         size={30}
 
                                     /> :
-                                        "Sign Up"
+                                        "Log In"
                                 }
 
                             </button>
