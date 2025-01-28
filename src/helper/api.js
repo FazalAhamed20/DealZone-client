@@ -1,4 +1,6 @@
-import { API_URL } from "../utils/constant"
+
+
+const API_URL=process.env.REACT_APP_API_URL
 
 
 export const getApi = async (path) => {
