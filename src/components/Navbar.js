@@ -1,7 +1,6 @@
 import React from 'react';
 import image from '../assets/images/business_14126701.png';
 import { useDispatch, useSelector } from 'react-redux';
-import { removeToken } from '../helper/token';
 import { removeUser } from '../redux/slice/userSlice';
 import { Link, useNavigate } from 'react-router-dom';
 import { logoutApi } from '../helper/api';
@@ -17,7 +16,6 @@ const Navbar = () => {
   const handleLogout=async()=>{
     await logoutApi("/logout")
     dispatch(removeUser())
-    removeToken()
     navigate('/')
 
   }

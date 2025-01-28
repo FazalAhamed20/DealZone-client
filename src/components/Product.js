@@ -5,10 +5,10 @@ import { getApi, postApi, productSearchCategoriesApi, productSearchFilterApi, se
 import { toast } from 'react-toastify';
 import { useSearchParams } from 'react-router-dom';
 import InfiniteScroll from 'react-infinite-scroll-component';
-
 import Search from './Search';
 import Filter from './Filter';
 import useCategories from '../hooks/useCategories';
+
 
 const Product = () => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -19,23 +19,27 @@ const Product = () => {
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
-
   const [isRequestToggle, setIsRequestToggle] = useState(false);
   const search = searchParams.get('search') || '';
   const category = categoryParams.get('category') || ""
   const filter =filterParams.get('filter')|| ""
+  let categories = useCategories()
 
   useEffect(() => {
     const fetchInitialProducts = async () => {
-      const response = await getApi('/products?page=1');
-      const result = await response.json();
-      setProducts(result.products);
-      setFilteredProducts(result.products);
-      setHasMore(result.products.length > 0); 
+      try {
+        const response = await getApi('/products?page=1');
+        const result = await response.json();
+        setProducts(result.products);
+        setFilteredProducts(result.products);
+        setHasMore(result.products.length > 0);   
+      } catch (error) {
+        setFilteredProducts([])
+        toast.error(error.message)
+      }
+     
     };
-
     fetchInitialProducts();
- 
   }, []);
 
   useEffect(() => {
@@ -50,7 +54,7 @@ const Product = () => {
       }
     }, 200);
     return () => clearTimeout(timer);
-  }, [search, products]);
+  }, [search]);
 
 
   useEffect(() => {
@@ -61,16 +65,13 @@ const Product = () => {
           setCategoryParams({});
         } else {
           const response = await productSearchCategoriesApi(category);
-          console.log(response);
-          
           setFilteredProducts(response.products);
           setCategoryParams({ category: category });
         }
       }
     };
-
     fetchData();
-  }, [category, products]);
+  }, [category]);
 
   useEffect(()=>{
     const fetchFilter=async()=>{
@@ -80,8 +81,6 @@ const Product = () => {
           setFilterParams({})
         }else{
           const response = await productSearchFilterApi(filter)
-          console.log(response);
-          
           setFilteredProducts(response);
           setCategoryParams({ filter: filter });
         }
@@ -90,14 +89,8 @@ const Product = () => {
     fetchFilter()
   },[products,filter])
 
-  let categories = useCategories()
-
-  
-
-  
-
-  const productsFetch = async (page, append = true) => {
-
+  const productsFetch = async (page=1, append = true) => {
+    console.log(page);
     const response = await getApi(`/products?page=${page}`);
     const result = await response.json();
     if (result.status === 500) {
@@ -132,8 +125,6 @@ const Product = () => {
     }
   };
 
-
-
   const handleProductCategories = async (category) => {
     let value=category
     setSelectedCategory(value)
@@ -143,7 +134,6 @@ const Product = () => {
   const handleProductFilter=async(filter)=>{
    let value=filter
     setFilterParams(value ? {filter:value}:{})
-   
   }
 
   const handleSearchChange = (e) => {
@@ -155,7 +145,7 @@ const Product = () => {
     const response = await postApi('/requests', { request_amount, product_id }, "product");
     if (response.status === 200) {
       setIsRequestToggle(false);
-      await productsFetch(1, false);  
+     productsFetch(1, false);  
       setPage(2); 
       toast("Request sent successfully");
     }
@@ -165,22 +155,21 @@ const Product = () => {
 
   if (filteredProducts == null) {
     return (
-      <div style={{ width: '100%', height: '10vh' }}> 
+      <div className='m-30'> 
         <ShimmerPostList postStyle="STYLE_FOUR" col={4} row={2} gap={30} />
       </div>
     );
   }
-
   return (
-    <div className="w-full px-4">
-      <div className="max-w-6xl mx-auto mt-10 ">
-        <div className="flex justify-between items-center mb-10 ">
+    <div className="w-full">
+        <div className="flex justify-between items-center m-10  mb-2">
           <div className="relative flex items-center gap-4">
             <div className="flex items-center">
               <h1 className="text-lg font-medium inline-block mr-2">Categories:</h1>
               <select
                 className="border border-black rounded-lg py-2"
                 onChange={(e) => handleProductCategories(e.target.value)}
+                value={category}
               >
                 {uniqueCategories.map(category => (
                   <option key={category} value={category}>
@@ -190,21 +179,24 @@ const Product = () => {
               </select>
             </div>
             <div className="flex items-center">
-              <Filter handleProductFilter={handleProductFilter}/>
+              <Filter handleProductFilter={handleProductFilter} value={filter}/>
             </div>
           </div>
           <div className="relative flex items-center">
             <Search handleSearchChange={handleSearchChange} handleSubmit={handleSubmit} />
           </div>
         </div>
-  
         {filteredProducts.length > 0 ? (
-          // <div id='scrollableDiv' className="overflow-y-auto" style={{ height: '70vh' }}> 
+          <div id='scrollableDiv' className="overflow-y-auto" style={{ height: '70vh' }}> 
           <InfiniteScroll
             dataLength={filteredProducts.length}
             next={() => setPage((prevPage) => prevPage + 1)}
             hasMore={hasMore}
-            loader={<ShimmerPostList postStyle="STYLE_FOUR" col={4} row={1} gap={30} size={100} />}
+            loader={
+              <div className="m-28 mt-0">
+              <ShimmerPostList postStyle="STYLE_FOUR" col={4} row={1} gap={30} />
+            </div>
+            }
             endMessage={
               <p className="text-center text-gray-500 my-4">
                 No more products
@@ -212,7 +204,6 @@ const Product = () => {
             }
             scrollableTarget="scrollableDiv"
           >
-            {filteredProducts.length > 0 ? (
               <ProductList
                 products={filteredProducts}
                 onRequestSubmit={handleRequestSubmit}
@@ -220,16 +211,12 @@ const Product = () => {
                 setIsRequestToggle={setIsRequestToggle}
                 selectedCategory={selectedCategory}
               />
-            ) : (
-              <p className="text-center mt-40 font-bold text-4xl">No Products</p>
-            )}
           </InfiniteScroll>
-        // </div>
+       </div>
         ) : (
           <p className="text-center mt-40 font-bold text-4xl">No Products</p>
         )}
       </div>
-    </div>
   );
 }
 

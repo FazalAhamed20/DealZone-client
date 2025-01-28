@@ -5,7 +5,6 @@ import { addUser } from '../redux/slice/userSlice';
 import { Link, useNavigate } from "react-router";
 import { toast } from 'react-toastify';
 import { ClipLoader } from 'react-spinners';
-import { storeToken } from '../helper/token';
 import { signUpValidation } from '../utils/validation'
 import { postApi } from '../helper/api';
 import { useDispatch } from 'react-redux';
@@ -24,15 +23,17 @@ const Signup = () => {
             if (response.status == 201) {
                 let result = await response.json()
        dispatch(addUser({ id: result.user._id, email: result.user.email, username: result.user.username }))
-                const token = response.headers.get('Authorization');
-                storeToken(token)
                 navigate('/products')
                 toast.success("Welcome to Deal Zone")
             } else {
                 let result = await response.json()
-                toast.error(result.user.message)
+                console.log(result);
+                
+                toast.error(result.message)
             }
         } catch (error) {
+            console.log(error.message);
+            
             toast.error(error.message)
 
         } finally {

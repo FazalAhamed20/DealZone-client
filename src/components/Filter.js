@@ -1,6 +1,6 @@
 import React from 'react'
 
-const Filter = ({handleProductFilter}) => {
+const Filter = ({handleProductFilter,value}) => {
   return (
     <div >
 
@@ -8,6 +8,7 @@ const Filter = ({handleProductFilter}) => {
             <select
               className="border border-black rounded-lg py-2"
               onChange={(e)=>handleProductFilter(e.target.value)}
+              value={value}
           
             >
                 <option>Select Filter</option>

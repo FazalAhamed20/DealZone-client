@@ -8,7 +8,7 @@ import userReducer from './slice/userSlice'
 
 
 const persistUserConfig = { key: 'user', storage, };
-const persistCategoriesConfig = { key: 'categories', storage, };
+
 const persistedUserReducer = persistReducer(persistUserConfig,userReducer)
 
 

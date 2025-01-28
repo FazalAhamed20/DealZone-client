@@ -5,7 +5,6 @@ import { loginValidation } from '../utils/validation';
 import { ClipLoader } from 'react-spinners';
 import { Link, useNavigate } from 'react-router-dom';
 import { postApi } from '../helper/api';
-import { storeToken } from '../helper/token';
 import { useDispatch } from 'react-redux';
 import { toast } from 'react-toastify';
 import { addUser } from '../redux/slice/userSlice';
@@ -21,16 +20,11 @@ const Login = () => {
             try {
                 console.log(values);
            
-                            let response = await postApi('/session', values, "user")
+                            let response = await postApi('/sessions', values, "user")
                             console.log(response);
                             if (response.status == 200) {
                                 let result = await response.json()
-                
-                
                               dispatch(addUser({ id: result.user._id, email: result.user.email, username: result.user.username }))
-                                const token = response.headers.get('Authorization');
-                
-                                storeToken(token)
                                 navigate('/products')
                                 toast.success("Welcome to Deal Zone")
                             } else {
@@ -69,7 +63,7 @@ const Login = () => {
 
                 </h1>
                 <Formik
-                    initialValues={{ email: "", password: "" }}
+                    initialValues={{ email: "fazal@gmail.com", password: "Fazal@123" }}
                     validationSchema={loginValidation}
                     onSubmit={handleSubmit}
                 >
